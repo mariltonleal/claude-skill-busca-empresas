@@ -7,6 +7,86 @@ description: "Central completa de busca e consulta de empresas brasileiras via A
 
 Skill para buscar, filtrar e exportar dados de empresas brasileiras usando a API Casa dos Dados. Permite localizar empresas por nome, atividade, localizacao, porte, regime tributario e muito mais.
 
+## IMPORTANTE: API paga com creditos
+
+A API Casa dos Dados e **paga por creditos**. Cada consulta consome creditos do saldo. Por isso, esta skill implementa controle de saldo obrigatorio para evitar uso excessivo.
+
+### Custo por operacao
+
+| Operacao | Custo estimado | Endpoint |
+|----------|---------------|----------|
+| Pesquisa de empresas | ~1 credito por pagina | POST /v5/cnpj/pesquisa |
+| Consulta CNPJ individual | ~1 credito | GET /v4/cnpj/{cnpj} |
+| Geracao de arquivo CSV | ~1 credito por linha | POST /v5/cnpj/pesquisa/arquivo |
+| Consulta de saldo | gratuito | GET /v5/saldo |
+| Dashboard empresas abertas | gratuito | GET /v4/dashboard/* |
+
+### Controle de saldo obrigatorio
+
+**ANTES de cada chamada paga**, consultar o saldo via `GET /v5/saldo` e aplicar estas regras:
+
+| Saldo | Nivel | Acao |
+|-------|-------|------|
+| > 1000 | Normal | Executar normalmente |
+| 500–1000 | Atencao | Executar + exibir aviso: "⚠️ Saldo em atencao: {saldo} creditos restantes" |
+| 100–499 | Baixo | Exibir alerta antes de executar: "🔶 Saldo baixo: {saldo} creditos. Deseja continuar?" — aguardar confirmacao do usuario |
+| < 100 | Critico | Bloquear execucao: "🔴 Saldo critico: {saldo} creditos. Operacao bloqueada para evitar ficar sem saldo. Use '/busca_empresas_cnpj saldo' para ver detalhes." |
+
+**Para geracao de CSV** (que consome mais creditos), aplicar regra mais conservadora:
+- Sempre mostrar estimativa: "Este CSV vai consumir ~{total_linhas} creditos. Saldo atual: {saldo}. Confirma?"
+- Bloquear se creditos < total_linhas solicitado
+
+### Formato da resposta de saldo
+
+```bash
+GET /v5/saldo
+```
+
+Resposta:
+```json
+{
+  "saldo_total": 9080,
+  "saldos": {
+    "avulso": {
+      "valor": 9080,
+      "criado_em": "2025-07-24T14:40:28Z",
+      "expira_em": "2027-07-24T14:40:28Z"
+    },
+    "subscription-2000": {
+      "valor": 0,
+      "criado_em": "2025-06-11T21:15:53Z",
+      "expira_em": "2025-07-13T00:00:00Z"
+    }
+  }
+}
+```
+
+### Exibicao de saldo
+
+Sempre que consultar o saldo (automaticamente ou via `/busca_empresas_cnpj saldo`), exibir:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SALDO API CASA DOS DADOS
+��━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💰 Saldo total: {saldo_total} creditos
+
+📦 Detalhamento:
+   Avulso: {valor} creditos (expira em {data_formatada})
+   Assinatura: {valor} creditos (expira em {data_formatada})
+
+{emoji_nivel} Status: {Normal / Atencao / Baixo / Critico}
+```
+
+### Rodape de saldo apos cada busca
+
+Apos cada busca paga, incluir no rodape da resposta:
+
+```
+💰 Saldo: {saldo_apos_busca} creditos restantes {emoji se atencao/baixo/critico}
+```
+
 ## Configuracao
 
 ### API Key
