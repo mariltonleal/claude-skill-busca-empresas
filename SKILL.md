@@ -11,23 +11,20 @@ Skill para buscar, filtrar e exportar dados de empresas brasileiras usando a API
 
 ### API Key
 
-A API requer autenticacao via header `api-key`. O token fica em `~/.claude/postman/environments.json` no ambiente `casadosdados`:
+A API requer autenticacao via header `api-key`. A configuracao fica no arquivo `config.json` na propria pasta da skill:
+
+**Caminho**: `~/.claude/skills/busca_empresas_cnpj/config.json`
 
 ```json
 {
-  "casadosdados": {
-    "name": "Casa dos Dados",
-    "base_url": "https://api.casadosdados.com.br",
-    "headers": {
-      "accept": "application/json",
-      "content-type": "application/json",
-      "api-key": "COLE_SUA_API_KEY_AQUI"
-    }
-  }
+  "api_key": "SUA_API_KEY_AQUI",
+  "base_url": "https://api.casadosdados.com.br"
 }
 ```
 
-Se o ambiente `casadosdados` nao existir no environments.json, avisar o usuario para configurar a API key. Consulte `~/.claude/postman/environments.json` para obter a chave.
+Ao executar, leia este arquivo para obter a `api_key` e `base_url`. Se o arquivo nao existir ou a key for "COLE_SUA_API_KEY_AQUI", avisar o usuario para configurar:
+- Copiar `config.example.json` para `config.json`
+- Colar a API key real
 
 ### Base URL
 
